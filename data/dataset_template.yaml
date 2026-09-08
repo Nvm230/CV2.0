@@ -1,0 +1,19 @@
+# ==============================================================================
+# Plantilla de Dataset YOLO para Dron Cautivo (CV2.0)
+# Detección y Segmentación de Fuego, Humo y Ventanas en Fachadas
+# ==============================================================================
+
+# Ruta raíz del dataset (absoluta o relativa)
+path: /home/nvm/Documents/Proyects/Tesis/CV2.0/data/dataset
+
+# Rutas de imágenes relativas a 'path'
+train: images/train
+val: images/val
+test: images/test # Opcional
+
+# Mapeo de Clases para Dron Cautivo
+names:
+  0: fire        # Fuego / Llamas activas
+  1: smoke       # Columnas o focos de humo
+  2: window      # Ventana estructural en fachada
+  3: balcony     # Balcones o terrazas de acceso

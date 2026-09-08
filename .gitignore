@@ -1,0 +1,6 @@
+
+weights/
+*.pt
+*.engine
+*.onnx
+*.mp4

@@ -1,0 +1,102 @@
+# ==============================================================================
+# Configuración del Sistema de Visión Artificial para Dron Cautivo (CV2.0)
+# Optimizado para NVIDIA GeForce RTX 5070 (12GB VRAM) & Intel Core Ultra 7
+# ==============================================================================
+
+model:
+  # Modelo neuronal especializado de alta precisión
+  weights: "weights/firedetect-11x.pt"
+  window_weights: "weights/window_detector.pt"
+  custom_weights: "weights/best_drone_cv2.pt" # Si existe, se prioriza
+  task: "detect"
+  confidence_threshold: 0.40 # Umbral limpio y estricto contra falsos positivos
+  window_confidence_threshold: 0.45
+  iou_threshold: 0.45
+  imgsz: 640 # Resolución nativa ultrarrápida (7.5ms TensorRT -> 60+ FPS)
+  device: "0" # RTX 5070
+  max_det: 300
+  augment: false
+
+# Inferencia de Alta Resolución por Parches SAHI (Slicing Aided Hyper Inference)
+# Divide la imagen en teselas paralelas de alta resolución para detectar fuego y ventanas diminutas a gran altura
+sahi:
+  enabled: false # Presiona la tecla [P] en vivo para activar en misiones de altura
+  slice_height: 640
+  slice_width: 640
+  overlap_height_ratio: 0.20
+  overlap_width_ratio: 0.20
+  postprocess_match_threshold: 0.55
+
+# Filtrado Temporal y Estabilidad Anti-Flicker (Anti-Parpadeos)
+temporal_filter:
+  min_consecutive_hits: 3 # Requiere confirmación de 3 cuadros continuos para mostrarse
+  box_smoothing_alpha: 0.75 # Suavizado exponencial para cajas perfectamente estables
+  max_lost_memory: 15 # Cuadros para mantener ID ante oclusiones leves
+
+# Mapeo y Filtrado de Clases
+classes:
+  filter_only_targets: true
+  fire_classes: ["fire", "flame", "smoke", "fuego", "humo"]
+  window_classes: ["window", "window_frame", "balcony", "ventana", "balcon"]
+  class_aliases:
+    "fire": 0
+    "smoke": 1
+    "window": 2
+
+# Configuración del Tracker BoT-SORT con GMC (Global Motion Compensation)
+tracker:
+  tracker_type: "botsort.yaml"
+  gmc_method: "sparseOptFlow" # 'sparseOptFlow', 'orb', 'ecc' o 'none'
+  track_high_thresh: 0.50
+  track_low_thresh: 0.20
+  new_track_thresh: 0.55
+  track_buffer: 60
+  match_thresh: 0.80
+  fuse_score: true
+  proximity_thresh: 0.5
+  appearance_thresh: 0.25
+  with_reid: false
+
+# Analizador Espacial y Geométrico de Emergencias
+analyzer:
+  iou_collision_thresh: 0.02
+  proximity_pixel_radius: 90
+  containment_weight: 0.7
+  spread_rate_history_len: 30
+  alert_persistence_frames: 15
+  log_incidents: true
+  incident_log_file: "runs/incidents.json"
+  severity_levels:
+    safe: 0.0
+    warning: 0.4
+    critical: 0.8
+
+# HUD y Estación Terrestre (Interfaz Táctica de Alto Rendimiento)
+hud:
+  show_telemetry: true
+  show_trajectories: false
+  show_masks: true
+  show_fps: true
+  show_gpu_stats: true
+  show_window_status: true
+  show_fire_metrics: true
+  hud_theme: "tactical_dark"
+  render_scale: 1.0
+  font_scale: 0.55
+  thickness: 2
+  alpha_overlay: 0.75
+
+# Ingesta de Video
+stream:
+  default_source: "samples/synthetic_drone_mission.mp4"
+  rtsp_transport: "tcp"
+  buffer_size: 2
+  reconnect_delay: 2.0
+  max_fps: 60
+
+# Grabación y Reportes Forenses
+recording:
+  auto_record_on_alert: false
+  output_dir: "runs/recordings"
+  codec: "mp4v"
+  fps: 30

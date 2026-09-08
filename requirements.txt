@@ -1,0 +1,19 @@
+# CV2.0 - Dron Cautivo: Visión Artificial de Alto Rendimiento
+# Compatible con Python 3.12 y PyTorch con CUDA 13.x (NVIDIA GeForce RTX 5070 Blackwell)
+
+--extra-index-url https://download.pytorch.org/whl/cu130
+torch>=2.13.0
+torchvision>=0.28.0
+
+ultralytics>=8.4.0
+opencv-python>=4.10.0
+lapx>=0.9.4
+filterpy>=1.4.5
+scipy>=1.14.0
+numpy>=1.26.0
+pyyaml>=6.0
+nvidia-ml-py>=12.535.0
+psutil>=5.9.0
+matplotlib>=3.9.0
+tqdm>=4.66.0
+requests>=2.32.0
