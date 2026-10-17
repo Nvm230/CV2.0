@@ -1,6 +1,44 @@
+# ==============================================================================
+# Git Ignore - CV2.0 Vision Ground Station
+# ==============================================================================
 
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.cache
+*.pyc
+
+# Virtual Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Large Model Weights (>50MB-100MB restricted by GitHub)
 weights/
 *.pt
 *.engine
 *.onnx
-*.mp4
+
+# Large Video Recordings and Run Dumps
+runs/*.mp4
+runs/processed_raw.mp4
+runs/processed_yolo26x_fire.mp4
+runs/recordings/*.mp4
+runs/detect/
+samples/youtube_drone_fire.mp4.webm
+samples/synthetic_drone_mission_orig.mp4
+samples/real_city_drone.webm
+
+# Temporary Caches and Dataset Generation
+data/dataset/
+scratch/
+
+# IDE & Editor files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.log
+runs/snapshots/

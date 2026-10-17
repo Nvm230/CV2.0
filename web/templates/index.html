@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Estación Terrestre y Sistema de Visión Artificial CV2.0 para Dron Cautivo con retransmisión web en red local">
+  <title>CV2.0 Tactical Ground Station | Telemetría y Visión Aérea</title>
+  
+  <!-- Tipografía moderna Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    
+    <!-- Top Header -->
+    <header class="top-header" id="topHeader">
+      <div class="brand-section">
+        <div class="radar-logo" id="radarLogo" aria-label="Logo Radar"></div>
+        <div class="title-wrap">
+          <h1>CV2.0 MISSION CONTROL <span class="badge-cv">TACTICAL GS</span></h1>
+          <div class="subtitle">ESTACIÓN TERRESTRE UAV // UTEC TESIS</div>
+        </div>
+      </div>
+
+      <div class="header-telemetry">
+        <!-- Indicador de Enlace Dron -->
+        <div class="status-badge" id="linkStatusBadge">
+          <span class="status-dot" id="connectionDot"></span>
+          <span id="connectionStatusText">CONECTANDO AL DRON...</span>
+        </div>
+
+        <!-- Botón con la IP en la red local para compartir con otros dispositivos -->
+        <div class="lan-pill" id="lanPill" data-url="{{ lan_url }}" title="Clic para copiar dirección web en la red local">
+          <span class="icon">🌐</span>
+          <span>LAN: {{ lan_url }}</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn-icon btn-alert" id="btnAudioAlert" title="Alternar alertas sonoras tácticas">
+          <span class="icon">🔕</span> Alertas: MUTE
+        </button>
+        <button class="btn-icon btn-primary" id="btnSnapshot" title="Capturar instantánea forense">
+          <span class="icon">📸</span> Snapshot
+        </button>
+        <button class="btn-icon" id="btnFullscreen" title="Pantalla completa">
+          <span class="icon">⛶</span> Fullscreen
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="dashboard-grid">
+      
+      <!-- Panel Izquierdo: Matriz de Emergencia y Detecciones -->
+      <aside class="panel" id="panelEmergency">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">🚨</span> Matriz de Amenazas
+          </div>
+          <span class="hud-pill" id="threatLevelBadge">ZONA ALFA</span>
+        </div>
+        
+        <div class="panel-body">
+          <!-- Alerta de Severidad -->
+          <div class="threat-badge-card" id="threatBanner">
+            <div class="threat-status-title" id="threatStatusTitle">ESCANEANDO SECTOR...</div>
+            <div class="threat-status-desc" id="threatStatusDesc">Analizando focos de calor y perímetros</div>
+          </div>
+
+          <!-- Barra de Índice de Severidad -->
+          <div class="gauge-bar-wrap">
+            <div class="gauge-header">
+              <span>Índice de Severidad Máxima</span>
+              <strong id="severityGaugeVal" class="stat-val">0%</strong>
+            </div>
+            <div class="gauge-track">
+              <div class="gauge-fill" id="severityGaugeFill"></div>
+            </div>
+          </div>
+
+          <!-- Estado de Ventanas / Estructura -->
+          <div class="gauge-bar-wrap">
+            <div class="gauge-header">
+              <span>Evaluación Estructural</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; font-size: 0.75rem;">
+              <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px; border-radius: 4px;">
+                <div style="color: var(--accent-emerald); font-weight: bold; font-size: 1rem;" id="winSafeCount">0</div>
+                <div style="color: var(--text-muted); font-size: 0.68rem;">SEGURAS</div>
+              </div>
+              <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); padding: 6px; border-radius: 4px;">
+                <div style="color: var(--accent-amber); font-weight: bold; font-size: 1rem;" id="winWarnCount">0</div>
+                <div style="color: var(--text-muted); font-size: 0.68rem;">ALERTA</div>
+              </div>
+              <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px; border-radius: 4px;">
+                <div style="color: var(--accent-crimson); font-weight: bold; font-size: 1rem;" id="winCritCount">0</div>
+                <div style="color: var(--text-muted); font-size: 0.68rem;">FUEGO</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de Detecciones en Tiempo Real -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Detecciones Activas</span>
+            <span class="hud-pill" id="detCountBadge">0 OBJETOS</span>
+          </div>
+          <div class="detections-list" id="detectionsList">
+            <div style="color: var(--text-muted); font-size: 0.75rem; text-align: center; padding: 12px;">
+              Iniciando receptor de video...
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Centro: Visor de Video Táctico -->
+      <section class="center-viewport" id="viewportSection">
+        <div class="video-container" id="videoContainer">
+          <img 
+            id="mainVideoStream" 
+            class="main-video-stream" 
+            src="/api/stream/annotated" 
+            alt="Flujo de video en vivo del dron con visión artificial"
+          >
+          
+          <!-- Superposiciones HUD sobre el video -->
+          <div class="hud-overlay" id="hudOverlay">
+            <div class="hud-top-row">
+              <div class="hud-pill" id="streamSourceBadge">INICIALIZANDO</div>
+              <div class="hud-pill" id="streamResBadge">1280x720</div>
+              <div class="hud-pill" id="streamFpsBadge">-- FPS</div>
+            </div>
+
+            <!-- Retícula central táctica -->
+            <div class="hud-target-reticle" id="targetReticle">
+              <svg viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                <circle cx="50" cy="50" r="30" stroke="#00f0ff" stroke-width="1" stroke-dasharray="4 4" />
+                <line x1="50" y1="10" x2="50" y2="35" stroke="#00f0ff" stroke-width="1.5" />
+                <line x1="50" y1="65" x2="50" y2="90" stroke="#00f0ff" stroke-width="1.5" />
+                <line x1="10" y1="50" x2="35" y2="50" stroke="#00f0ff" stroke-width="1.5" />
+                <line x1="65" y1="50" x2="90" y2="50" stroke="#00f0ff" stroke-width="1.5" />
+                <circle cx="50" cy="50" r="3" fill="#00f0ff" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Control del Stream -->
+        <div class="video-controls-bar">
+          <div class="stream-mode-toggles">
+            <button class="mode-btn active" id="btnModeAnnotated">ANOTADO (HUD)</button>
+            <button class="mode-btn" id="btnModeRaw">DRON PURO (RAW)</button>
+          </div>
+
+          <div style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+            NVIDIA GPU RTX TENSOR CORES // YOLO26x + BoT-SORT
+          </div>
+        </div>
+
+        <!-- Fila de Métricas Rápidas -->
+        <div class="quick-metrics-row">
+          <div class="metric-card danger">
+            <span class="metric-label">Focos Activos</span>
+            <div class="metric-value" id="metricActiveFires">0</div>
+          </div>
+          <div class="metric-card warn">
+            <span class="metric-label">Ventanas en Peligro</span>
+            <div class="metric-value" id="metricBurningWindows">0</div>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Velocidad Fuego</span>
+            <div class="metric-value">
+              <span id="metricSpreadRate">0.0</span><span class="metric-unit">px/s</span>
+            </div>
+          </div>
+          <div class="metric-card success">
+            <span class="metric-label">Latencia Inferencia</span>
+            <div class="metric-value">
+              <span id="metricLatency">0.0</span><span class="metric-unit">ms</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel Derecho: Hardware y Mandos de Operación -->
+      <aside class="panel" id="panelControls">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span class="icon">⚡</span> Rendimiento & Control
+          </div>
+          <span class="hud-pill">GPU ACTIVE</span>
+        </div>
+
+        <div class="panel-body">
+          <!-- Telemetría de Hardware -->
+          <div>
+            <div style="font-size: 0.76rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 6px;">
+              Aceleración Hardware
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Dispositivo:</span>
+              <span class="stat-val" id="gpuName" style="color: var(--accent-cyan);">{{ gpu_name }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Carga GPU:</span>
+              <span class="stat-val" id="gpuLoad">0%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Temperatura GPU:</span>
+              <span class="stat-val" id="gpuTemp">0 °C</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">VRAM Utilizada:</span>
+              <span class="stat-val" id="vramText">0 / 12288 MB</span>
+            </div>
+            <div class="gauge-track" style="margin: 4px 0 10px 0;">
+              <div class="gauge-fill" id="vramBarFill" style="background: var(--accent-cyan); width: 0%;"></div>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Carga CPU:</span>
+              <span class="stat-val" id="cpuPercent">0%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Memoria RAM:</span>
+              <span class="stat-val" id="ramText">0.0 GB (0%)</span>
+            </div>
+          </div>
+
+          <!-- Botones de Control Remoto -->
+          <div>
+            <div style="font-size: 0.76rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; margin-bottom: 8px;">
+              Interruptores de Visión
+            </div>
+            <div class="controls-grid">
+              <button class="btn-control" id="btnToggleSahi">
+                <span>🔍 SAHI High-Res</span>
+                <small>Teselas Paralelas</small>
+              </button>
+              <button class="btn-control active" id="btnToggleHud">
+                <span>🖥️ HUD Overlays</span>
+                <small>Gráficos Tácticos</small>
+              </button>
+              <button class="btn-control" id="btnToggleTraj">
+                <span>📈 Trayectorias</span>
+                <small>Vectores BoT-SORT</small>
+              </button>
+              <button class="btn-control" id="btnToggleRec">
+                <span>⏺️ Grabación</span>
+                <small>Video Evidencia</small>
+              </button>
+            </div>
+          </div>
+
+          <!-- Umbral de Confianza -->
+          <div class="range-wrap">
+            <div class="range-header">
+              <span>Umbral de Confianza YOLO</span>
+              <strong id="valConfidence" class="stat-val">0.15</strong>
+            </div>
+            <input type="range" id="rangeConfidence" min="0.05" max="0.90" step="0.05" value="0.15">
+          </div>
+
+          <!-- Cambio Dinámico de Fuente de Video -->
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="font-size: 0.76rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">
+              Fuente de Video / Puerto Red
+            </div>
+            <div class="source-input-wrap">
+              <input type="text" class="input-source" id="inputSource" placeholder="udp_socket:5005 o rtsp://...">
+              <button class="btn-icon btn-primary" id="btnApplySource" style="padding: 8px 12px;">Conectar</button>
+            </div>
+
+            <!-- Botones Preset de Fuentes Rápidas -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px;">
+              <button class="btn-icon btn-preset-source" data-src="udp_socket:5005" style="font-size: 0.7rem; justify-content: center;">
+                📡 Puerto UDP 5005
+              </button>
+              <button class="btn-icon btn-preset-source" data-src="samples/synthetic_drone_mission.mp4" style="font-size: 0.7rem; justify-content: center;">
+                🎬 Misión Sintética
+              </button>
+              <button class="btn-icon btn-preset-source" data-src="rtsp://192.168.1.50:8554/live" style="font-size: 0.7rem; justify-content: center;">
+                🚁 RTSP Dron
+              </button>
+              <button class="btn-icon btn-preset-source" data-src="0" style="font-size: 0.7rem; justify-content: center;">
+                📷 Cámara Local
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer-bar">
+      <div>CV2.0 TACTICAL TETHERED DRONE // UTEC TESIS DE GRADO</div>
+      <div>TRANSMISIÓN DE BAJA LATENCIA SOBRE RED LOCAL // HTTP MJPEG + WEBSOCKETS</div>
+      <div>ESTADO: <span style="color: var(--accent-emerald);">ONLINE</span></div>
+    </footer>
+
+  </div>
+
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

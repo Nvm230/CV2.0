@@ -174,7 +174,7 @@ class GroundStationHUD:
         gpu_load = gpu.get('utilization_gpu', 0)
         gpu_temp = gpu.get('temperature_c', 0)
         temp_color = self.COLOR_SAFE_GREEN if gpu_temp < 65 else self.COLOR_WARN_AMBER if gpu_temp < 75 else self.COLOR_CRIT_RED
-        cv2.putText(img, f'GPU: RTX 5070 ({gpu_load}%)  Temp: {gpu_temp} C', (x0 + 10, y0 + 68), cv2.FONT_HERSHEY_SIMPLEX, 0.42, temp_color, 1, cv2.LINE_AA)
+        cv2.putText(img, f'GPU: NVIDIA RTX ({gpu_load}%)  Temp: {gpu_temp} C', (x0 + 10, y0 + 68), cv2.FONT_HERSHEY_SIMPLEX, 0.42, temp_color, 1, cv2.LINE_AA)
         vram_used = gpu.get('vram_used_mb', 0)
         vram_total = gpu.get('vram_total_mb', 12288)
         vram_pct = gpu.get('vram_percent', 0.0)

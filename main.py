@@ -26,7 +26,7 @@ def cmd_run(args, config: dict):
         download_or_generate_samples()
     print(f'\n' + '=' * 70)
     print(' 🚀 INICIANDO ESTACIÓN TERRESTRE CV2.0 (DRON CAUTIVO)')
-    print('    Hardware: NVIDIA GeForce RTX 5070 (Tensor Cores FP16) + Intel Core Ultra')
+    print('    Hardware: NVIDIA GPU RTX (Tensor Cores FP16) + Intel Core Ultra')
     print(f'    Fuente de video: {source}')
     print('=' * 70 + '\n')
     hw_monitor = HardwareMonitor()
@@ -36,7 +36,7 @@ def cmd_run(args, config: dict):
     stream = VideoStreamHandler(source, loop_video=True).start()
     if args.record:
         hud.toggle_recording((stream.width, stream.height))
-    window_name = 'CV2.0 - Tactical Ground Station HUD (RTX 5070)'
+    window_name = 'CV2.0 - Tactical Ground Station HUD (NVIDIA GPU RTX)'
     if not args.headless:
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(window_name, 1280, 720)
@@ -82,7 +82,7 @@ def cmd_run(args, config: dict):
         print(f'[Main] Session closed. Total frames processed: {frame_count}')
 
 def cmd_test(args, config: dict):
-    source = args.source or 'samples/synthetic_drone_mission.mp4'
+    source = args.source or config.get('stream', {}).get('default_source', 'samples/youtube_drone_fire.mp4.webm')
     if not os.path.exists(source):
         print(f"[Main] Target sample not found at '{source}'. Generating test samples...")
         download_or_generate_samples()
@@ -145,7 +145,7 @@ def cmd_test(args, config: dict):
 
 def cmd_benchmark(args, config: dict):
     print('\n' + '=' * 70)
-    print(' ⚡ BENCHMARK DE RENDIMIENTO EN NVIDIA GEFORCE RTX 5070')
+    print(' ⚡ BENCHMARK DE RENDIMIENTO EN NVIDIA GPU RTX')
     print('=' * 70)
     detector = DroneVisionDetector(config)
     hw = HardwareMonitor()
@@ -174,10 +174,10 @@ def cmd_benchmark(args, config: dict):
 
 def cmd_train(args, config: dict):
     from src.trainer import DroneModelTrainer
-    data_yaml = args.data or 'data/dataset_template.yaml'
-    model = args.model or config.get('model', {}).get('weights', 'yolo11x.pt')
+    data_yaml = args.data or 'data/dataset/data.yaml'
+    model = args.model or config.get('model', {}).get('weights', 'yolo26x.pt')
     epochs = args.epochs or 50
-    imgsz = args.imgsz or config.get('model', {}).get('imgsz', 1280)
+    imgsz = args.imgsz or config.get('model', {}).get('imgsz', 640)
     batch = args.batch or 8
     trainer = DroneModelTrainer(data_yaml, model)
     trainer.train(epochs=epochs, imgsz=imgsz, batch=batch)
@@ -194,14 +194,17 @@ def main():
     test_parser.add_argument('--source', type=str, default=None, help='Video file to test')
     test_parser.add_argument('--output', type=str, default='runs/test_output.mp4', help='Output video path')
     test_parser.add_argument('--max-frames', type=int, default=150, help='Max frames to process')
-    subparsers.add_parser('benchmark', help='Benchmark RTX 5070 performance across resolutions')
+    subparsers.add_parser('benchmark', help='Benchmark NVIDIA GPU RTX performance across resolutions')
     subparsers.add_parser('download-samples', help='Generate/download realistic drone test media')
     train_parser = subparsers.add_parser('train', help='Train model with drone-tailored augmentations')
-    train_parser.add_argument('--data', type=str, default='data/dataset_template.yaml', help='Dataset YAML')
-    train_parser.add_argument('--model', type=str, default='yolo11x.pt', help='Base model weights')
+    train_parser.add_argument('--data', type=str, default='data/dataset/data.yaml', help='Dataset YAML')
+    train_parser.add_argument('--model', type=str, default='yolo26x.pt', help='Base model weights')
     train_parser.add_argument('--epochs', type=int, default=50, help='Training epochs')
-    train_parser.add_argument('--imgsz', type=int, default=1280, help='Image resolution')
+    train_parser.add_argument('--imgsz', type=int, default=640, help='Image resolution')
     train_parser.add_argument('--batch', type=int, default=8, help='Batch size')
+    web_parser = subparsers.add_parser('web', help='Launch web dashboard for local network (LAN) streaming')
+    web_parser.add_argument('--port', type=int, default=8000, help='Web server port (default 8000)')
+    web_parser.add_argument('--source', type=str, default=None, help='Initial video stream or network port')
     args = parser.parse_args()
     if args.command is None:
         parser.print_help()
@@ -209,6 +212,19 @@ def main():
     config = load_config(args.config)
     if args.command == 'run':
         cmd_run(args, config)
+    elif args.command == 'web':
+        import uvicorn
+        from web.app import app, receiver, get_lan_ip
+        if args.source:
+            receiver.change_source(args.source)
+        local_ip = get_lan_ip()
+        print("\n" + "=" * 70)
+        print(" 🚀 ESTACIÓN TERRESTRE CV2.0 - SERVIDOR WEB LAN INICIADO")
+        print(f"    Acceso Local:             http://127.0.0.1:{args.port}")
+        print(f"    Acceso Red Local (LAN):   http://{local_ip}:{args.port}")
+        print(f"    Puerto UDP Receptor Dron: 0.0.0.0:{receiver.udp_port}")
+        print("=" * 70 + "\n")
+        uvicorn.run(app, host="0.0.0.0", port=args.port, log_level="warning")
     elif args.command == 'test':
         cmd_test(args, config)
     elif args.command == 'benchmark':

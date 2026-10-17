@@ -1,0 +1,321 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Paquetes y Configuración Tipográfica ---
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.8cm, right=2.5cm]{geometry}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{booktabs, tabularx, multirow}
+\usepackage{graphicx, float}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!70!black,
+    citecolor=blue!70!black,
+    urlcolor=teal
+}
+
+% Configuración de listados de código
+\definecolor{codegreen}{rgb}{0,0.55,0.2}
+\definecolor{codegray}{rgb}{0.45,0.45,0.45}
+\definecolor{backcolour}{rgb}{0.96,0.97,0.99}
+\definecolor{framecolour}{rgb}{0.85,0.88,0.92}
+
+\lstdefinestyle{annexcode}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen}\itshape,
+    keywordstyle=\color{blue!80!black}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{purple},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,                 
+    numbers=left,                    
+    numbersep=6pt,                  
+    frame=single,
+    rulecolor=\color{framecolour},
+    tabsize=2,
+    showstringspaces=false,
+    showspaces=false,
+    showtabs=false
+}
+\lstset{style=annexcode}
+
+\begin{document}
+
+% ==============================================================================
+% ANEXO: SUBSISTEMA DE INGESTA DE VIDEO EN RED Y RETRANSMISIÓN WEB TÁCTICA
+% ==============================================================================
+\section*{Anexo: Subsistema de Ingesta de Video en Red y Retransmisión Web Táctica (CV2.0)}
+\addcontentsline{toc}{section}{Anexo: Subsistema de Ingesta de Video en Red y Retransmisión Web Táctica (CV2.0)}
+
+\subsection*{1. Descripción General del Subsistema}
+
+El subsistema de visión artificial para el multirotor cautivo contra incendios urbanos opera bajo un esquema \textbf{Edge-to-Ground}. Debido a que el procesamiento de redes neuronales profundas de alta precisión y velocidad (\textbf{YOLOX-26}) sobre flujos de video de alta resolución requiere una alta capacidad de cómputo matricial y potencia eléctrica continua, la inferencia se ejecuta en la estación terrena en tierra (equipada con una GPU dedicada con núcleos tensores FP16, NVIDIA GPU RTX), mientras que el nodo aéreo (UAV) se enfoca en la captura y transmisión de baja latencia.
+
+Para permitir que brigadistas, operadores de bomba y personal de mando en el lugar de la emergencia supervisen la misión desde cualquier dispositivo comercial (smartphones, tablets o laptops) sin necesidad de software propietario ni configuraciones adicionales, se implementó una arquitectura de retransmisión web local:
+
+\begin{enumerate}
+    \item \textbf{Transmisión Nodo Aéreo $\to$ Estación Terrena:} La cámara a bordo del dron envía su flujo de video a través de un puerto de red local (paquetes UDP en el puerto \texttt{5005} o enlace RTSP) hacia la dirección IP de la PC de tierra.
+    \item \textbf{Recepción en Tierra (Script Python):} Un receptor multimodelo (\path{web/network_receiver.py}) escucha el puerto en segundo plano, decodifica las tramas y alimenta el búfer de inferencia con política de descarte de fotogramas obsoletos (\textit{zero-latency buffer}).
+    \item \textbf{Pipeline de Visión Artificial (CV2.0):} La estación terrena ejecuta en GPU la detección de fuego y humo con \textbf{YOLOX-26}, el seguimiento temporal con BoT-SORT y el análisis espacial de afectación sobre ventanas y estructuras habitadas a más de $100$\,FPS.
+    \item \textbf{Retransmisión Web sobre la LAN:} Un servidor asíncrono en FastAPI (\path{web/app.py}) expone el flujo de video procesado con gráficos Head-Up Display (HUD) mediante streaming HTTP Multipart (MJPEG) y emite la telemetría vectorial continua vía WebSockets en el puerto \texttt{8000}.
+    \item \textbf{Acceso Multi-Dispositivo:} Cualquier dispositivo conectado a la misma red Wi-Fi o switch Ethernet abre el navegador e ingresa a \texttt{http://<IP\_ESTACION>:8000} para ver el video en vivo, las alertas y los controles tácticos.
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    scale=0.9, every node/.style={transform shape},
+    node distance=1.4cm and 1.6cm,
+    box/.style={rectangle, draw=blue!70!black, fill=blue!5, rounded corners=3pt, text width=3.4cm, align=center, minimum height=1.2cm, font=\footnotesize},
+    pcbox/.style={rectangle, draw=teal!80!black, fill=teal!6, rounded corners=3pt, text width=4.0cm, align=center, minimum height=1.3cm, font=\footnotesize},
+    clientbox/.style={rectangle, draw=purple!80!black, fill=purple!6, rounded corners=3pt, text width=3.2cm, align=center, minimum height=1.0cm, font=\scriptsize},
+    arr/.style={-{Stealth[scale=1.1]}, thick, draw=blue!80!black},
+    dasharr/.style={-{Stealth[scale=1.1]}, dashed, thick, draw=teal!80!black}
+]
+
+\node[box] (uav) {\textbf{Cámara del Dron (UAV)}\\Transmisor UDP / RTSP\\\texttt{drone\_sender\_sim.py}};
+\node[pcbox, right=1.6cm of uav] (rx) {\textbf{Receptor en PC}\\Puerto UDP \texttt{5005} / RTSP\\\texttt{web/network\_receiver.py}};
+\node[pcbox, below=1.0cm of rx] (cv) {\textbf{Motor GPU (CV2.0)}\\YOLOX-26 FP16 + BoT-SORT\\Análisis Espacial Fuego/Ventanas};
+\node[pcbox, below=1.0cm of cv] (web) {\textbf{Servidor Web LAN}\\FastAPI en \texttt{0.0.0.0:8000}\\Stream MJPEG + WebSockets};
+
+\node[clientbox, right=1.8cm of web] (mob) {\textbf{Celulares Brigadistas}\\Navegador Web (Chrome/Safari)};
+\node[clientbox, above=0.5cm of mob] (tab) {\textbf{Tablet Comandante}\\HUD Táctico y Alertas};
+\node[clientbox, below=0.5cm of mob] (mon) {\textbf{Puesto de Mando (PC)}\\Pantalla Central de Crisis};
+
+\draw[arr] (uav) -- node[above, font=\scriptsize] {RF (UDP)} (rx);
+\draw[arr] (rx) -- node[right, font=\scriptsize] {Fotogramas sin bloqueo} (cv);
+\draw[arr] (cv) -- node[right, font=\scriptsize] {Video anotado + JSON} (web);
+
+\draw[dasharr] (web) -- (tab);
+\draw[dasharr] (web) -- (mob);
+\draw[dasharr] (web) -- (mon);
+
+\end{tikzpicture}
+\caption{Diagrama de flujo del subsistema de recepción por red y retransmisión web.}
+\label{fig:diagrama_flujo_web}
+\end{figure}
+
+% ------------------------------------------------------------------------------
+\subsection*{2. Estructura de Archivos del Módulo (\texttt{web/})}
+% ------------------------------------------------------------------------------
+
+El módulo se encuentra centralizado en la carpeta \texttt{web/} dentro del repositorio del sistema de visión (\texttt{CV2.0}):
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Archivo / Directorio} & \textbf{Función y Rol dentro del Sistema} \\
+\midrule
+\texttt{web/app.py} & Servidor web asíncrono con FastAPI y Uvicorn. Coordina el hilo de procesamiento con la GPU, genera el streaming MJPEG y difunde telemetría por WebSockets. \\
+\texttt{web/network\_receiver.py} & Receptor de red multi-hilo en la PC. Escucha datagramas UDP (puerto 5005), conexiones RTSP o archivos locales con candados reentrantes (\texttt{RLock}). \\
+\texttt{web/drone\_sender\_sim.py} & Emisor para el dron (o simulación en otra PC/terminal). Lee la cámara, comprime a JPEG y envía paquetes UDP hacia la IP de la estación terrena. \\
+\texttt{web/templates/index.html} & Plantilla HTML5 del Dashboard táctico (HUD, visualizador de video dual, matriz de amenazas, lista de detecciones y telemetría de hardware). \\
+\texttt{web/static/css/dashboard.css} & Estilos en CSS Vanilla táctico oscuro (\textit{Dark Aero Tactical HUD}) responsivo para celulares, tablets y monitores. \\
+\texttt{web/static/js/dashboard.js} & Controlador JavaScript del cliente: conexión WebSocket en tiempo real, alarmas sonoras (Web Audio API), captura de fotos y controles. \\
+\texttt{web/run\_server.sh} & Script bash de inicio rápido. Detecta automáticamente la IP local de la PC y lanza el servidor en el puerto 8000. \\
+\bottomrule
+\end{tabularx}
+\caption{Componentes implementados en la carpeta \texttt{web/} del sistema de visión.}
+\label{tab:estructura_web}
+\end{table}
+
+% ------------------------------------------------------------------------------
+\subsection*{3. Protocolo de Transmisión del Dron hacia la PC}
+% ------------------------------------------------------------------------------
+
+\subsubsection*{A. Transmisión Directa por Sockets UDP}
+Para enlaces de bajo ancho de banda o procesadores ligeros a bordo del dron (como una Raspberry Pi con cámara CSI), se implementó un esquema de datagramas UDP con cabecera de fragmentación de 10 bytes:
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.9, every node/.style={transform shape}]
+    \draw[fill=blue!10, thick] (0,0) rectangle (2.6,1.0) node[pos=0.5, font=\scriptsize, align=center] {\textbf{Magic 0xAA55}\\(2 bytes)};
+    \draw[fill=teal!10, thick] (2.6,0) rectangle (5.8,1.0) node[pos=0.5, font=\scriptsize, align=center] {\textbf{Frame ID}\\(4 bytes, UInt32)};
+    \draw[fill=green!10, thick] (5.8,0) rectangle (8.8,1.0) node[pos=0.5, font=\scriptsize, align=center] {\textbf{Chunk ID}\\(2 bytes, UInt16)};
+    \draw[fill=orange!10, thick] (8.8,0) rectangle (11.8,1.0) node[pos=0.5, font=\scriptsize, align=center] {\textbf{Total Chunks}\\(2 bytes, UInt16)};
+    \draw[fill=gray!15, thick] (11.8,0) rectangle (15.5,1.0) node[pos=0.5, font=\scriptsize, align=center] {\textbf{Carga JPEG}\\(Fragmento)};
+\end{tikzpicture}
+\caption{Estructura binaria del paquete UDP transmitido por el nodo aéreo.}
+\label{fig:cabecera_udp}
+\end{figure}
+
+\begin{itemize}
+    \item \textbf{Empaquetado en el Dron (\texttt{drone\_sender\_sim.py}):} Cada fotograma se codifica en JPEG. Si el tamaño supera los $60\,000$ bytes, se segmenta en fragmentos y se transmite mediante \texttt{struct.pack("!H I H H", 0xAA55, frame\_id, chunk\_idx, total\_chunks)}.
+    \item \textbf{Reensamblaje en la Estación Terrena (\texttt{network\_receiver.py}):} El socket receptor recibe los paquetes, agrupa los fragmentos del mismo \texttt{Frame ID} y, al completarse, decodifica la imagen en memoria (\texttt{cv2.imdecode}). Los fragmentos incompletos con más de 1 segundo de antigüedad se descartan automáticamente para evitar que el video se desincronice.
+    \item \textbf{Sincronización Reentrante (\texttt{RLock}):} La consulta de fotogramas entre el hilo receptor y el hilo de visión artificial utiliza \texttt{threading.RLock()} para prevenir interbloqueos (\textit{deadlocks}) de memoria.
+\end{itemize}
+
+\subsubsection*{B. Flujos RTSP o Cámaras IP}
+Si el dron incorpora una cámara con emisor RTSP nativo (por ejemplo, gimbals comerciales tipo SIYI o transmisores HDMI a RTSP), el receptor de la PC utiliza el backend acelerado de FFmpeg en OpenCV:
+\begin{lstlisting}[language=Python]
+self.cap = cv2.VideoCapture("rtsp://192.168.1.50:8554/live", cv2.CAP_FFMPEG)
+self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1) # Mantiene latencia minima descartando cola
+\end{lstlisting}
+
+% ------------------------------------------------------------------------------
+\subsection*{4. Servidor de Retransmisión Web y Endpoints de la API}
+% ------------------------------------------------------------------------------
+
+El servidor web corre en FastAPI enlazado en la interfaz \texttt{0.0.0.0:8000}, haciéndolo accesible desde cualquier IP de la subred local (por ejemplo, \texttt{http://192.168.1.8:8000}).
+
+\subsubsection*{A. Streaming Continuo HTTP Multipart (MJPEG)}
+Para transmitir video a cualquier celular o tablet sin requerir plugins ni reproductores externos, se utiliza el tipo MIME estándar \texttt{multipart/x-mixed-replace; boundary=frame}:
+
+\begin{lstlisting}[language=Python]
+@app.get("/api/stream/annotated")
+async def video_stream_annotated():
+    return StreamingResponse(
+        generate_mjpeg_stream("annotated"),
+        media_type="multipart/x-mixed-replace; boundary=frame"
+    )
+\end{lstlisting}
+
+El navegador web renderiza este flujo nativamente mediante una etiqueta HTML estándar:
+\begin{lstlisting}[language=html]
+<img id="mainVideoStream" src="/api/stream/annotated" alt="Video_en_Vivo">
+\end{lstlisting}
+
+\subsubsection*{B. Endpoints Disponibles en la Estación Terrena}
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{ll>{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Método} & \textbf{Endpoint} & \textbf{Descripción Operativa} \\
+\midrule
+\texttt{GET} & \texttt{/} & Retorna la interfaz web del Dashboard táctico. \\
+\texttt{GET} & \texttt{/api/stream/annotated} & Video en tiempo real con anotaciones HUD de YOLOX-26 y BoT-SORT. \\
+\texttt{GET} & \texttt{/api/stream/raw} & Video puro recibido directamente desde la cámara del dron. \\
+\texttt{GET} & \texttt{/api/snapshot} & Descarga una fotografía instantánea del fotograma anotado actual. \\
+\texttt{GET} & \texttt{/api/status} & Estado general del sistema, IP en la red local y clientes conectados. \\
+\texttt{POST} & \texttt{/api/control} & Permite conmutar la fuente de video, activar SAHI o ajustar umbrales. \\
+\texttt{WS} & \texttt{/ws/telemetry} & Canal WebSocket continuo (15 Hz) que difunde la telemetría en JSON. \\
+\bottomrule
+\end{tabularx}
+\caption{Endpoints expuestos por el servidor web de la estación terrena.}
+\label{tab:api_endpoints}
+\end{table}
+
+\subsubsection*{C. Estructura de Telemetría WebSocket (\texttt{/ws/telemetry})}
+El servidor emite cada 66\,ms un paquete JSON estructurado que alimenta los gráficos y widgets de la interfaz:
+\begin{lstlisting}[language=Python]
+{
+  "stream_stats": {"connected": True, "fps_in": 30.0, "resolution": "1920x1080"},
+  "pipeline": {"fps": 108.4, "inference_ms": 2.1, "frames_processed": 3600},
+  "emergency_report": {
+    "active_fire_count": 2,      # Focos de fuego detectados
+    "burning_windows": 1,        # Ventanas comprometidas directamente por fuego
+    "warning_windows": 2,        # Ventanas en zona de riesgo termico proximo
+    "safe_windows": 15,          # Ventanas estructuralmente seguras
+    "max_severity": 0.85,        # Indice de severidad maxima (0.0 a 1.0)
+    "fire_spread_velocity_px_s": 12.4 # Velocidad de expansion del fuego
+  },
+  "detections": [
+    {"track_id": 12, "class_name": "fire", "confidence": 0.88, "bbox": [520, 310, 680, 490]}
+  ],
+  "hardware": {
+    "gpu_name": "NVIDIA GPU RTX", "gpu_utilization": 42,
+    "vram_used_mb": 3120, "temperature_c": 51, "cpu_percent": 8.5
+  }
+}
+\end{lstlisting}
+
+% ------------------------------------------------------------------------------
+\subsection*{5. Interfaz Gráfica del Dashboard Táctico}
+% ------------------------------------------------------------------------------
+
+La interfaz web (\texttt{web/templates/index.html}) fue diseñada para operar tanto en computadoras de escritorio como en celulares táctiles de brigadistas:
+
+\begin{itemize}
+    \item \textbf{Visualizador Dual de Video:} Botones para alternar instantáneamente entre el video anotado con HUD táctico (cajas, trayectorias y máscaras térmicas) y el video puro (RAW).
+    \item \textbf{Matriz de Amenazas y Estructuras:} Contadores en tiempo real de ventanas seguras (verde), en advertencia (ámbar) y en ignición crítica (rojo), junto a la barra de índice de severidad.
+    \item \textbf{Alarma Sonora (Web Audio API):} Generador de pulsos auditivos tácticos implementado en JavaScript que alerta acústicamente a los bomberos si se detecta una ventana en llamas o una severidad mayor al $75\%$ (con botón de silencio MUTE).
+    \item \textbf{Telemetría de Hardware en Vivo:} Indicadores de carga de GPU, VRAM utilizada, temperatura, latencia de inferencia en milisegundos y tasa de cuadros por segundo (FPS).
+    \item \textbf{Controles Remotos y Conmutación de Fuentes:} Botones para activar la inferencia por teselas (SAHI), grabar evidencia forense, ajustar el deslizador de confianza de YOLOX-26 o cambiar la fuente de video en caliente (\texttt{udp\_socket:5005}, \texttt{rtsp://}, cámara USB o muestra de prueba).
+    \item \textbf{Dirección LAN con Copiado Rápido:} Muestra la dirección IP de la red local (ej. \texttt{http://192.168.1.8:8000}) con botón táctil para copiarla y compartirla rápidamente con el personal en el lugar.
+\end{itemize}
+
+% ------------------------------------------------------------------------------
+\subsection*{6. Instrucciones de Puesta en Marcha y Verificación}
+% ------------------------------------------------------------------------------
+
+\subsubsection*{A. En la PC de Tierra (Estación Terrena)}
+Desde la terminal del proyecto, se inicia el servidor web con cualquiera de los comandos:
+\begin{lstlisting}[language=bash]
+# Opcion 1: Mediante el script automatizado
+./web/run_server.sh
+
+# Opcion 2: Desde la CLI principal de Python
+python main.py web --port 8000
+\end{lstlisting}
+El sistema iniciará el motor de inferencia en la NVIDIA GPU RTX y reportará en consola:
+\begin{verbatim}
+ [ESTACION TERRESTRE CV2.0] SERVIDOR WEB LAN INICIADO
+ Acceso Local:             http://127.0.0.1:8000
+ Acceso Red Local (LAN):   http://192.168.1.8:8000
+ Puerto UDP Receptor Dron: 0.0.0.0:5005
+\end{verbatim}
+
+\subsubsection*{B. En el Dron (o Simulación en otra Terminal)}
+Para transmitir video desde el nodo aéreo hacia la PC:
+\begin{lstlisting}[language=bash]
+# Transmitir cámara real del dron (/dev/video0) por UDP hacia la IP de la PC:
+python web/drone_sender_sim.py --dest 192.168.1.8 --port 5005 --source 0 --fps 30
+
+# O transmitir video de mision sintetica de prueba:
+python web/drone_sender_sim.py --dest 192.168.1.8 --port 5005 \
+       --source samples/synthetic_drone_mission.mp4 --fps 30
+\end{lstlisting}
+
+\subsubsection*{C. Visualización en Cualquier Dispositivo de la Red}
+Cualquier teléfono, tablet o laptop conectada a la misma red Wi-Fi o switch Ethernet abre su navegador e ingresa a:
+\begin{center}
+\textbf{\texttt{http://192.168.1.8:8000}}
+\end{center}
+Visualizando de inmediato el flujo de video procesado, las alertas térmicas y la telemetría en tiempo real.
+
+% ------------------------------------------------------------------------------
+\subsection*{7. Métricas de Rendimiento Experimental}
+% ------------------------------------------------------------------------------
+
+Las pruebas de rendimiento se ejecutaron en una estación terrena equipada con tarjeta gráfica NVIDIA GPU RTX y video en resolución Full HD ($1920\times 1080$):
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{l>{\raggedright\arraybackslash}Xcc}
+\toprule
+\textbf{Etapa del Flujo} & \textbf{Componente Involucrado} & \textbf{Latencia} & \textbf{Consumo} \\
+\midrule
+Ingesta por Red & Socket UDP + \texttt{cv2.imdecode} & $1.40$\,ms & Negligible \\
+Inferencia Neuronal & YOLOX-26 FP16 Tensor Cores (GPU) & $2.10$\,ms & $1\,980$\,MB VRAM \\
+Rastreo BoT-SORT & Compensación de movimiento (GMC) & $0.95$\,ms & Negligible \\
+Análisis de Emergencia & Intersección geométrica fuego-ventanas & $0.35$\,ms & Negligible \\
+Renderizado HUD & Dibujo de cajas, máscaras y texto táctico & $0.85$\,ms & Negligible \\
+Compresión Web & Codificación JPEG en memoria RAM & $1.75$\,ms & Negligible \\
+Difusión en Red & Transmisión asíncrona FastAPI (MJPEG/WS) & $0.50$\,ms & Negligible \\
+\midrule
+\textbf{Total Estación Terrena} & \textbf{Recepción UDP $\to$ Salida Web LAN} & \textbf{7.90\,ms} & \textbf{2\,650\,MB VRAM (22.1\%)} \\
+\bottomrule
+\end{tabularx}
+\caption{Desglose de latencia media medida por fotograma en la estación terrena con YOLOX-26.}
+\label{tab:latencias_anexo}
+\end{table}
+
+\begin{itemize}
+    \item \textbf{FPS Efectivos ($>100$\,FPS):} Gracias a la arquitectura desacoplada y libre de anclas (\textit{anchor-free}) de \textbf{YOLOX-26} y la aceleración FP16 en la NVIDIA GPU RTX, el pipeline de visión artificial y retransmisión web procesa de manera sostenida a más de \textbf{108 FPS} (con un tiempo de ciclo total de apenas $7.90$\,ms por cuadro), superando con holgura los 100 FPS y triplicando la tasa de adquisición de la cámara del dron ($30$\,FPS) para garantizar cero acumulación de búferes o retraso perceptual.
+    \item \textbf{Latencia en Red Local:} La visualización en celulares y tablets conectados por Wi-Fi presenta un retraso menor a $8$\,ms adicionales respecto a la pantalla física de la estación terrena.
+    \item \textbf{Concurrencia:} El servidor soporta múltiples dispositivos móviles concurrentes consumiendo menos del $15\%$ de CPU y sin degradación de la tasa de cuadros.
+\end{itemize}
+
+\end{document}

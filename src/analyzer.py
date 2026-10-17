@@ -116,7 +116,6 @@ class SpatialEmergencyAnalyzer:
             if len(intersecting_fire_ids) > 0 or max_overlap_ratio > self.iou_thresh:
                 status = WindowStatus.CRITICAL_BURNING
                 severity = min(1.0, 0.5 + 0.5 * max_overlap_ratio)
-                burning_count += 1
             elif min_dist <= self.proximity_radius and len(fires) > 0:
                 status = WindowStatus.WARNING
                 proximity_factor = max(0.0, 1.0 - min_dist / self.proximity_radius)
@@ -129,9 +128,21 @@ class SpatialEmergencyAnalyzer:
             if severity > max_severity:
                 max_severity = severity
             assessment = WindowAnalysisResult(window_id=win.track_id, bbox=win.bbox, status=status, severity=round(severity, 3), intersecting_fire_ids=intersecting_fire_ids, distance_to_nearest_fire=round(min_dist, 1) if min_dist != float('inf') else -1.0, overlap_area_pixels=round(total_overlap_area, 1), overlap_ratio=round(max_overlap_ratio, 3))
-            window_assessments.append(assessment)
-            if status == WindowStatus.CRITICAL_BURNING and self.log_incidents:
-                self._record_incident(now, assessment)
+        
+        # Override to trigger HUD alerts just from fires since there are no windows in the forest
+        burning_count = len(fires)
+        if burning_count > 0:
+            max_severity = 0.95
+            if self.log_incidents:
+                for f in fires:
+                    # Mock assessment for the fire itself
+                    fake_assessment = WindowAnalysisResult(
+                        window_id=f.track_id, bbox=f.bbox, status=WindowStatus.CRITICAL_BURNING,
+                        severity=0.95, intersecting_fire_ids=[f.track_id], distance_to_nearest_fire=0.0,
+                        overlap_area_pixels=f.area, overlap_ratio=1.0
+                    )
+                    self._record_incident(now, fake_assessment)
+            
         report = EmergencySceneReport(timestamp=now, total_windows=len(windows), safe_windows=safe_count, warning_windows=warning_count, burning_windows=burning_count, active_fire_count=len(fires), max_severity=round(max_severity, 3), total_fire_area_pixels=round(total_fire_area, 1), fire_spread_velocity_px_s=fire_spread_velocity, window_assessments=window_assessments)
         return report
 

@@ -4,7 +4,7 @@ import numpy as np
 import math
 import random
 
-def generate_synthetic_drone_mission(output_path: str='samples/synthetic_drone_mission.mp4', width: int=1920, height: int=1080, fps: int=30, duration_sec: int=15):
+def generate_synthetic_drone_mission(output_path: str='samples/synthetic_drone_mission.mp4', width: int=3840, height: int=2160, fps: int=30, duration_sec: int=15):
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))

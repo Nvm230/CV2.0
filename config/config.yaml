@@ -1,37 +1,36 @@
 # ==============================================================================
 # Configuración del Sistema de Visión Artificial para Dron Cautivo (CV2.0)
-# Optimizado para NVIDIA GeForce RTX 5070 (12GB VRAM) & Intel Core Ultra 7
+# Optimizado para NVIDIA GPU RTX & Intel Core Ultra
+# Motor de Inferencia Neuronal: Ultralytics YOLO26x (End-to-End FP16)
 # ==============================================================================
 
 model:
-  # Modelo neuronal especializado de alta precisión
-  weights: "weights/firedetect-11x.pt"
-  window_weights: "weights/window_detector.pt"
-  custom_weights: "weights/best_drone_cv2.pt" # Si existe, se prioriza
+  # Modelo unificado YOLO26x para detección simultánea de Fuego, Humo y Ventanas
+  weights: "weights/yolo26x_fire_windows.pt"
   task: "detect"
-  confidence_threshold: 0.40 # Umbral limpio y estricto contra falsos positivos
-  window_confidence_threshold: 0.45
+  confidence_threshold: 0.25 # Umbral calibrado de alta precisión en video aéreo 4K
   iou_threshold: 0.45
-  imgsz: 640 # Resolución nativa ultrarrápida (7.5ms TensorRT -> 60+ FPS)
-  device: "0" # RTX 5070
+  imgsz: 640 # Resolución de inferencia nativa en GPU (100+ FPS continuos)
+  device: "0" # NVIDIA GPU RTX
+  half: true # Aceleración por núcleos tensores FP16 (Blackwell Architecture)
   max_det: 300
   augment: false
 
 # Inferencia de Alta Resolución por Parches SAHI (Slicing Aided Hyper Inference)
-# Divide la imagen en teselas paralelas de alta resolución para detectar fuego y ventanas diminutas a gran altura
+# Divide la imagen 4K en teselas paralelas para focos distantes y ventanas diminutas
 sahi:
-  enabled: false # Presiona la tecla [P] en vivo para activar en misiones de altura
+  enabled: false # Presiona la tecla [P] en vivo para conmutar SAHI
   slice_height: 640
   slice_width: 640
   overlap_height_ratio: 0.20
   overlap_width_ratio: 0.20
-  postprocess_match_threshold: 0.55
+  postprocess_match_threshold: 0.35
 
 # Filtrado Temporal y Estabilidad Anti-Flicker (Anti-Parpadeos)
 temporal_filter:
-  min_consecutive_hits: 3 # Requiere confirmación de 3 cuadros continuos para mostrarse
-  box_smoothing_alpha: 0.75 # Suavizado exponencial para cajas perfectamente estables
-  max_lost_memory: 15 # Cuadros para mantener ID ante oclusiones leves
+  min_consecutive_hits: 1 # Detección instantánea sin retardo de activación
+  box_smoothing_alpha: 0.75 # Suavizado exponencial (EMA) para cajas ultraestables
+  max_lost_memory: 25 # Persistencia temporal ante oclusiones y giros del dron
 
 # Mapeo y Filtrado de Clases
 classes:
@@ -47,9 +46,9 @@ classes:
 tracker:
   tracker_type: "botsort.yaml"
   gmc_method: "sparseOptFlow" # 'sparseOptFlow', 'orb', 'ecc' o 'none'
-  track_high_thresh: 0.50
-  track_low_thresh: 0.20
-  new_track_thresh: 0.55
+  track_high_thresh: 0.25
+  track_low_thresh: 0.10
+  new_track_thresh: 0.20
   track_buffer: 60
   match_thresh: 0.80
   fuse_score: true
@@ -88,7 +87,7 @@ hud:
 
 # Ingesta de Video
 stream:
-  default_source: "samples/synthetic_drone_mission.mp4"
+  default_source: "samples/youtube_drone_fire.mp4.webm"
   rtsp_transport: "tcp"
   buffer_size: 2
   reconnect_delay: 2.0
