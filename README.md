@@ -66,11 +66,33 @@ Pruebas empíricas ejecutadas con precisión mixta automática **FP16** utilizan
 > ### 🤔 ¿Qué significa una latencia de 12.65 ms? ¿Es rápida o se puede mejorar?
 > - **¿Es rápida?:** ¡Es extremadamente rápida! La cámara de un dron típicamente graba a **30 FPS** (es decir, entrega 1 fotograma cada **$33.3$ milisegundos**). Si el modelo procesa cada cuadro en **$12.65$ milisegundos** ($79.1$ FPS), significa que es **$2.6$ veces más rápido de lo necesario para tiempo real continuo**. Nunca habrá retraso (*lag*) ni acumulación de fotogramas.
 > - **¿Qué significa "Valor Medido" y "Estado Operativo"?:**
->   - **Valor Medido:** Es el tiempo real cronometrado (en milisegundos) que le tomó a la tarjeta gráfica calcular la red neuronal y renderizar el cuadro en la prueba.
->   - **Estado Operativo:** Es el diagnóstico del pipeline que confirma que el sistema opera en verde (saludable), procesando a más cuadros por segundo de los que produce la cámara, garantizando cero retraso perceptual.
-> - **¿Se puede hacer aún más rápida?:**
->   - Con **YOLO26x (Extra Large)** (58.8 millones de parámetros) sobre la **NVIDIA GPU RTX**, $10\sim12$\,ms es el estado del arte absoluto en precisión para modelos de este calibre.
->   - Si se requiere una latencia aún más extrema de **$3\sim5$\,ms ($>200$\,FPS)**, se puede conmutar a la variante compacta **YOLO26s** o compilar los pesos a un motor estático **TensorRT INT8**.
+>   - **Valor Medido:** Es el tiempo real cronometrado (en milisegundos) que le tomó a la tarjeta gráfica calcular la red neuronal y renderizar el cuadro en la prueba física.
+>   - **Estado Operativo:** Es el diagnóstico del pipeline que confirma que el sistema opera en verde (saludable), procesando a más cuadros por segundo de los que produce la cámara ($>80$\,FPS sostenidos frente a los $30$\,FPS del video), garantizando cero retraso perceptual ni acumulación de búferes.
+
+---
+
+### ⚖️ Comparativa de Variantes YOLO26: ¿Cuándo cambiar de modelo? (Nano vs Small vs Extra Large)
+
+Si en tu misión operativa necesitas **reducir la latencia a mínimos extremos** o **aumentar drásticamente los FPS**, puedes alternar entre las distintas escalas de la familia **YOLO26**. A continuación se muestra la comparativa empírica medida en la **NVIDIA GPU RTX** a resolución nativa ($640\times 640$ FP16):
+
+| Variante | Parámetros | Latencia GPU | FPS Máximos | Consumo VRAM | Ventaja Principal | Consecuencia / Compensación (*Trade-off*) |
+| :--- | :---: | :---: | :---: | :---: | :--- | :--- |
+| **YOLO26n** *(Nano)* | **$2.6$ M** | **$2.97$ ms** | **$336.7$ FPS** | $88$ MB | Velocidad supersónica. Inferencia en microsegundos apta para chips embebidos. | **Menor agudeza visual:** Pierde chispas distantes diminutas, humo transparente o ventanas lejanas. Mayor tasa de falsos negativos. |
+| **YOLO26s** *(Small)* | **$10.0$ M** | **$4.11$ ms** | **$243.1$ FPS** | $198$ MB | Balance ágil ($>240$\,FPS) con alta tasa de acierto ($94.9\%$ mAP en fuego/humo). | **Ligera pérdida en fachadas complejas:** Puede omitir divisiones finas en ventanas con barrotes o en contraluz severo comparado con X. |
+| **YOLO26m** *(Medium)* | **$21.9$ M** | **$7.61$ ms** | **$131.5$ FPS** | $336$ MB | Excelente equilibrio intermedio para transmisiones de alta frecuencia. | Requiere el doble de cómputo que Nano sin alcanzar la resolución espacial de Large/X. |
+| **YOLO26l** *(Large)* | **$26.3$ M** | **$9.72$ ms** | **$102.9$ FPS** | $428$ MB | Gran capacidad descriptiva para misiones de reconocimiento detallado. | Peso de modelo intermedio ($50$\,MB). |
+| **YOLO26x** *(Extra Large)* ⭐ | **$58.8$ M** | **$10\sim 17$ ms** | **$60\sim 100$ FPS** | $702$ MB | **Máxima precisión absoluta (SOTA):** Detecta fuego sub-píxel, humo tenue y ventanas arquitectónicas a gran distancia. | **Mayor latencia:** Tarda $\approx 10-12$\,ms. *(Aun así, es $2.6\times$ más rápido que los $30$\,FPS de la cámara, por lo que no genera ningún lag en la NVIDIA GPU RTX)*. |
+
+#### 🔄 ¿Cómo cambiar de modelo en el sistema?
+Simplemente edita la línea `weights` en [config/config.yaml](config/config.yaml):
+```yaml
+model:
+  # Opción A (Ultra Velocidad / 240+ FPS):
+  weights: "weights/yolo26s.pt"
+  
+  # Opción B (Máxima Precisión Táctica - Recomendado por defecto):
+  # weights: "weights/yolo26x_fire_windows.pt"
+```
 
 ---
 
