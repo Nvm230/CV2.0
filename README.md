@@ -1,10 +1,10 @@
-# 🚁 CV2.0 - Sistema de Visión Artificial Táctico para Dron Cautivo
+# CV2.0 - Sistema de Visión Artificial Táctico para Dron Cautivo
 ### Detección Simultánea de Fuego, Humo y Ventanas con Ultralytics YOLO26x en Tiempo Real
 > **Optimizado para NVIDIA GPU RTX (FP16 Tensor Cores) e Intel Core Ultra**
 
 ---
 
-## 📖 1. ¿Qué hace este Sistema?
+## 1. ¿Qué hace este Sistema?
 
 **CV2.0** es un sistema de visión por computadora y estación terrena táctica (*Ground Station*) desarrollado para drones multirotor cautivos (*tethered UAVs*) empleados en **operaciones de emergencia, bomberos y rescate urbano o forestal**.
 
@@ -14,9 +14,9 @@ El núcleo del sistema resuelve un reto crítico: **analizar video aéreo en ult
 3. **Ventanas en Fachadas (`window`):** Aberturas arquitectónicas habitadas para calcular si el fuego las está invadiendo o amenazando.
 
 El motor espacial cruza en milisegundos la posición del fuego respecto a las ventanas del edificio, emitiendo alertas inmediatas clasificadas en:
-- 🟢 **SAFE:** Ventana segura, alejada del frente térmico.
-- 🟡 **WARNING:** Ventana en riesgo por proximidad crítica ($<90$\,px).
-- 🔴 **CRITICAL BURNING:** Fuego penetrando activamente o quemando la ventana.
+- **SAFE:** Ventana segura, alejada del frente térmico.
+- **WARNING:** Ventana en riesgo por proximidad crítica ($<90$\,px).
+- **CRITICAL BURNING:** Fuego penetrando activamente o quemando la ventana.
 
 ```
        [ Dron Cautivo en Altura ]
@@ -32,7 +32,7 @@ El motor espacial cruza en milisegundos la posición del fuego respecto a las ve
 
 ---
 
-## 🖼️ 2. Resultados Visuales: Video Real Procesado (4K)
+## 2. Resultados Visuales: Video Real Procesado (4K)
 
 A continuación se muestran capturas reales tomadas del procesamiento del video aéreo de incendio forestal y urbano ([samples/youtube_drone_fire.mp4.webm](samples/)):
 
@@ -52,18 +52,18 @@ A continuación se muestran capturas reales tomadas del procesamiento del video 
 
 ---
 
-## ⚡ 3. Rendimiento y FPS por Resolución (NVIDIA GPU RTX)
+## 3. Rendimiento y FPS por Resolución (NVIDIA GPU RTX)
 
 Pruebas empíricas ejecutadas con precisión mixta automática **FP16** utilizando `python main.py benchmark`:
 
 | Resolución de Entrada | Dimensiones (Píxeles) | Latencia Media de Inferencia | Tasa Efectiva (FPS) | Consumo de VRAM | Estado Operativo |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **720p HD** | $1280 \times 720$ | **$10.37$ ms** | **$96.4$ FPS** | $2\,067$ MB | 🟢 Excelente ($>3\times$ tiempo real) |
-| **1080p Full HD** | $1920 \times 1080$ | **$10.15$ ms** | **$98.6$ FPS** | $2\,256$ MB | 🟢 Excelente ($>3\times$ tiempo real) |
-| **1440p 2K** | $2560 \times 1440$ | **$11.68$ ms** | **$85.6$ FPS** | $2\,300$ MB | 🟢 Óptimo ($>2.8\times$ tiempo real) |
-| **4K Ultra HD** | $3840 \times 2160$ | **$10.45$ ms** | **$95.7$ FPS** | $2\,386$ MB | 🟢 Óptimo ($>3\times$ tiempo real) |
+| **720p HD** | $1280 \times 720$ | **$10.37$ ms** | **$96.4$ FPS** | $2\,067$ MB | Excelente ($>3\times$ tiempo real) |
+| **1080p Full HD** | $1920 \times 1080$ | **$10.15$ ms** | **$98.6$ FPS** | $2\,256$ MB | Excelente ($>3\times$ tiempo real) |
+| **1440p 2K** | $2560 \times 1440$ | **$11.68$ ms** | **$85.6$ FPS** | $2\,300$ MB | Óptimo ($>2.8\times$ tiempo real) |
+| **4K Ultra HD** | $3840 \times 2160$ | **$10.45$ ms** | **$95.7$ FPS** | $2\,386$ MB | Óptimo ($>3\times$ tiempo real) |
 
-> ### 🤔 ¿Qué significa una latencia de 12.65 ms? ¿Es rápida o se puede mejorar?
+> ### ¿Qué significa una latencia de 12.65 ms? ¿Es rápida o se puede mejorar?
 > - **¿Es rápida?:** ¡Es extremadamente rápida! La cámara de un dron típicamente graba a **30 FPS** (es decir, entrega 1 fotograma cada **$33.3$ milisegundos**). Si el modelo procesa cada cuadro en **$12.65$ milisegundos** ($79.1$ FPS), significa que es **$2.6$ veces más rápido de lo necesario para tiempo real continuo**. Nunca habrá retraso (*lag*) ni acumulación de fotogramas.
 > - **¿Qué significa "Valor Medido" y "Estado Operativo"?:**
 >   - **Valor Medido:** Es el tiempo real cronometrado (en milisegundos) que le tomó a la tarjeta gráfica calcular la red neuronal y renderizar el cuadro en la prueba física.
@@ -71,7 +71,7 @@ Pruebas empíricas ejecutadas con precisión mixta automática **FP16** utilizan
 
 ---
 
-### ⚖️ Comparativa de Variantes YOLO26: ¿Cuándo cambiar de modelo? (Nano vs Small vs Extra Large)
+### Comparativa de Variantes YOLO26: ¿Cuándo cambiar de modelo? (Nano vs Small vs Extra Large)
 
 Si en tu misión operativa necesitas **reducir la latencia a mínimos extremos** o **aumentar drásticamente los FPS**, puedes alternar entre las distintas escalas de la familia **YOLO26**. A continuación se muestra la comparativa empírica medida en la **NVIDIA GPU RTX** a resolución nativa ($640\times 640$ FP16):
 
@@ -81,9 +81,9 @@ Si en tu misión operativa necesitas **reducir la latencia a mínimos extremos**
 | **YOLO26s** *(Small)* | **$10.0$ M** | **$4.11$ ms** | **$243.1$ FPS** | $198$ MB | Balance ágil ($>240$\,FPS) con alta tasa de acierto ($94.9\%$ mAP en fuego/humo). | **Ligera pérdida en fachadas complejas:** Puede omitir divisiones finas en ventanas con barrotes o en contraluz severo comparado con X. |
 | **YOLO26m** *(Medium)* | **$21.9$ M** | **$7.61$ ms** | **$131.5$ FPS** | $336$ MB | Excelente equilibrio intermedio para transmisiones de alta frecuencia. | Requiere el doble de cómputo que Nano sin alcanzar la resolución espacial de Large/X. |
 | **YOLO26l** *(Large)* | **$26.3$ M** | **$9.72$ ms** | **$102.9$ FPS** | $428$ MB | Gran capacidad descriptiva para misiones de reconocimiento detallado. | Peso de modelo intermedio ($50$\,MB). |
-| **YOLO26x** *(Extra Large)* ⭐ | **$58.8$ M** | **$10\sim 17$ ms** | **$60\sim 100$ FPS** | $702$ MB | **Máxima precisión absoluta (SOTA):** Detecta fuego sub-píxel, humo tenue y ventanas arquitectónicas a gran distancia. | **Mayor latencia:** Tarda $\approx 10-12$\,ms. *(Aun así, es $2.6\times$ más rápido que los $30$\,FPS de la cámara, por lo que no genera ningún lag en la NVIDIA GPU RTX)*. |
+| **YOLO26x** *(Extra Large)*  | **$58.8$ M** | **$10\sim 17$ ms** | **$60\sim 100$ FPS** | $702$ MB | **Máxima precisión absoluta (SOTA):** Detecta fuego sub-píxel, humo tenue y ventanas arquitectónicas a gran distancia. | **Mayor latencia:** Tarda $\approx 10-12$\,ms. *(Aun así, es $2.6\times$ más rápido que los $30$\,FPS de la cámara, por lo que no genera ningún lag en la NVIDIA GPU RTX)*. |
 
-#### 🔄 ¿Cómo cambiar de modelo en el sistema?
+#### ¿Cómo cambiar de modelo en el sistema?
 Simplemente edita la línea `weights` en [config/config.yaml](config/config.yaml):
 ```yaml
 model:
@@ -96,7 +96,7 @@ model:
 
 ---
 
-## 📊 4. Métricas de Entrenamiento y Validación
+## 4. Métricas de Entrenamiento y Validación
 
 El modelo unificado [weights/yolo26x_fire_windows.pt](weights/) fue entrenado sobre un conjunto balanceado de datos aéreos de incendios reales y fachadas arquitectónicas:
 
@@ -112,7 +112,7 @@ El modelo unificado [weights/yolo26x_fire_windows.pt](weights/) fue entrenado so
 
 ---
 
-## 🛠️ 5. Guía de Re-entrenamiento con Nuevas Imágenes
+## 5. Guía de Re-entrenamiento con Nuevas Imágenes
 
 Puedes volver a entrenar el modelo en cualquier momento si recolectas nuevas fotos de drones, incendios o fachadas:
 
@@ -155,7 +155,7 @@ Los mejores pesos entrenados se guardarán automáticamente en `weights/yolo26x_
 
 ---
 
-## 🚀 6. Modos de Ejecución
+## 6. Modos de Ejecución
 
 ### A. Estación Terrestre en Vivo (Ventana HUD Táctica)
 ```bash
@@ -188,7 +188,7 @@ Abre en cualquier navegador de la red local: `http://<IP_DE_TU_PC>:8000`.
 
 ---
 
-## 📦 7. Estructura del Repositorio
+## 7. Estructura del Repositorio
 
 ```
 CV2.0/
@@ -216,5 +216,5 @@ CV2.0/
 
 ---
 
-## 📄 Licencia
+## 8. Licencia
 Desarrollado en **UTEC** como parte del proyecto de investigación y tesis sobre Sistemas de Visión Artificial para Multirotores Cautivos en Emergencias Urbanas.

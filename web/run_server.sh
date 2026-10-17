@@ -19,7 +19,7 @@ fi
 LOCAL_IP=$(ip -4 addr show | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v '127.0.0.1' | head -n 1 || echo "127.0.0.1")
 
 echo "========================================================================"
-echo "  🚀 INICIANDO SERVIDOR WEB ESTACIÓN TERRESTRE CV2.0"
+echo "  INICIANDO SERVIDOR WEB ESTACIÓN TERRESTRE CV2.0"
 echo "  Hardware: NVIDIA GPU RTX + PyTorch CUDA"
 echo "  Acceso Local:             http://127.0.0.1:8000"
 echo "  Acceso Red Local (LAN):   http://${LOCAL_IP}:8000"

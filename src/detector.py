@@ -298,7 +298,7 @@ class DroneVisionDetector:
 
         # 3. Model Weights Resolution (YOLO26x)
         self.model_path = self._resolve_yolo26x_weights()
-        print(f"[Detector] ⚡ Loading Unified YOLO26x Engine: {self.model_path}")
+        print(f"[Detector] Loading Unified YOLO26x Engine: {self.model_path}")
         self.model = YOLO(self.model_path)
         if self.half_precision and hasattr(self.model, "model") and hasattr(self.model.model, "half"):
             try:
@@ -326,10 +326,10 @@ class DroneVisionDetector:
             dev_str = f"cuda:{dev}" if dev.isdigit() else "cuda"
             gpu_name = torch.cuda.get_device_name(0)
             total_vram = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-            print(f"[Detector] 🎮 Hardware: {gpu_name} ({total_vram:.1f} GB VRAM) on {dev_str}")
-            print(f"[Detector] 🚀 FP16 Tensor Cores & cuDNN Benchmark: ENABLED")
+            print(f"[Detector] Hardware: {gpu_name} ({total_vram:.1f} GB VRAM) on {dev_str}")
+            print(f"[Detector] FP16 Tensor Cores & cuDNN Benchmark: ENABLED")
             return dev_str
-        print("[Detector] ⚠️ Warning: CUDA not available. Running on CPU.")
+        print("[Detector] Warning: CUDA not available. Running on CPU.")
         return "cpu"
 
     def _resolve_yolo26x_weights(self) -> str:

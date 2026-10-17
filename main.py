@@ -25,7 +25,7 @@ def cmd_run(args, config: dict):
         print(f"[Main] Source file '{source}' not found. Generating sample media...")
         download_or_generate_samples()
     print(f'\n' + '=' * 70)
-    print(' 🚀 INICIANDO ESTACIÓN TERRESTRE CV2.0 (DRON CAUTIVO)')
+    print('    INICIANDO ESTACION TERRESTRE CV2.0 (DRON CAUTIVO)')
     print('    Hardware: NVIDIA GPU RTX (Tensor Cores FP16) + Intel Core Ultra')
     print(f'    Fuente de video: {source}')
     print('=' * 70 + '\n')
@@ -132,7 +132,7 @@ def cmd_test(args, config: dict):
     avg_latency = float(np.mean(latencies)) if latencies else 0.0
     throughput_fps = frame_idx / total_time if total_time > 0 else 0.0
     print('\n' + '=' * 60)
-    print(' 📊 RESULTADOS DE PRUEBA DE VISIÓN ARTIFICIAL (CV2.0)')
+    print(' RESULTADOS DE PRUEBA DE VISION ARTIFICIAL (CV2.0)')
     print('=' * 60)
     print(f' Frames Procesados:       {frame_idx}')
     print(f' Tiempo Total:            {total_time:.2f} s')
@@ -145,7 +145,7 @@ def cmd_test(args, config: dict):
 
 def cmd_benchmark(args, config: dict):
     print('\n' + '=' * 70)
-    print(' ⚡ BENCHMARK DE RENDIMIENTO EN NVIDIA GPU RTX')
+    print(' BENCHMARK DE RENDIMIENTO EN NVIDIA GPU RTX')
     print('=' * 70)
     detector = DroneVisionDetector(config)
     hw = HardwareMonitor()
@@ -219,7 +219,7 @@ def main():
             receiver.change_source(args.source)
         local_ip = get_lan_ip()
         print("\n" + "=" * 70)
-        print(" 🚀 ESTACIÓN TERRESTRE CV2.0 - SERVIDOR WEB LAN INICIADO")
+        print(" ESTACION TERRESTRE CV2.0 - SERVIDOR WEB LAN INICIADO")
         print(f"    Acceso Local:             http://127.0.0.1:{args.port}")
         print(f"    Acceso Red Local (LAN):   http://{local_ip}:{args.port}")
         print(f"    Puerto UDP Receptor Dron: 0.0.0.0:{receiver.udp_port}")

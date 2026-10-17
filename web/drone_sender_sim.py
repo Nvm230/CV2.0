@@ -21,7 +21,7 @@ import numpy as np
 
 def run_drone_transmitter(dest_ip: str, dest_port: int, source: str, fps: int = 30, quality: int = 80, chunk_size: int = 60000):
     print("=" * 65)
-    print(" 🚁 NODO AÉREO (UAV TRANSMITTER) - EMISOR DE VIDEO POR PUERTO UDP")
+    print(" NODO AEREO (UAV TRANSMITTER) - EMISOR DE VIDEO POR PUERTO UDP")
     print("=" * 65)
     print(f" Destino (PC Estación Terrestre): {dest_ip}:{dest_port}")
     print(f" Fuente de video:                 {source}")

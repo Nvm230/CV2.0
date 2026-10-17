@@ -35,17 +35,17 @@
 
         <!-- Botón con la IP en la red local para compartir con otros dispositivos -->
         <div class="lan-pill" id="lanPill" data-url="{{ lan_url }}" title="Clic para copiar dirección web en la red local">
-          <span class="icon">🌐</span>
+          <span class="icon"></span>
           <span>LAN: {{ lan_url }}</span>
         </div>
       </div>
 
       <div class="header-actions">
         <button class="btn-icon btn-alert" id="btnAudioAlert" title="Alternar alertas sonoras tácticas">
-          <span class="icon">🔕</span> Alertas: MUTE
+          <span class="icon"></span> Alertas: MUTE
         </button>
         <button class="btn-icon btn-primary" id="btnSnapshot" title="Capturar instantánea forense">
-          <span class="icon">📸</span> Snapshot
+          <span class="icon"></span> Snapshot
         </button>
         <button class="btn-icon" id="btnFullscreen" title="Pantalla completa">
           <span class="icon">⛶</span> Fullscreen
@@ -60,7 +60,7 @@
       <aside class="panel" id="panelEmergency">
         <div class="panel-header">
           <div class="panel-title">
-            <span class="icon">🚨</span> Matriz de Amenazas
+            <span class="icon"></span> Matriz de Amenazas
           </div>
           <span class="hud-pill" id="threatLevelBadge">ZONA ALFA</span>
         </div>
@@ -190,7 +190,7 @@
       <aside class="panel" id="panelControls">
         <div class="panel-header">
           <div class="panel-title">
-            <span class="icon">⚡</span> Rendimiento & Control
+            <span class="icon"></span> Rendimiento & Control
           </div>
           <span class="hud-pill">GPU ACTIVE</span>
         </div>
@@ -237,15 +237,15 @@
             </div>
             <div class="controls-grid">
               <button class="btn-control" id="btnToggleSahi">
-                <span>🔍 SAHI High-Res</span>
+                <span>SAHI High-Res</span>
                 <small>Teselas Paralelas</small>
               </button>
               <button class="btn-control active" id="btnToggleHud">
-                <span>🖥️ HUD Overlays</span>
+                <span>️ HUD Overlays</span>
                 <small>Gráficos Tácticos</small>
               </button>
               <button class="btn-control" id="btnToggleTraj">
-                <span>📈 Trayectorias</span>
+                <span>Trayectorias</span>
                 <small>Vectores BoT-SORT</small>
               </button>
               <button class="btn-control" id="btnToggleRec">
@@ -277,16 +277,16 @@
             <!-- Botones Preset de Fuentes Rápidas -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px;">
               <button class="btn-icon btn-preset-source" data-src="udp_socket:5005" style="font-size: 0.7rem; justify-content: center;">
-                📡 Puerto UDP 5005
+                Puerto UDP 5005
               </button>
               <button class="btn-icon btn-preset-source" data-src="samples/synthetic_drone_mission.mp4" style="font-size: 0.7rem; justify-content: center;">
-                🎬 Misión Sintética
+                Misión Sintética
               </button>
               <button class="btn-icon btn-preset-source" data-src="rtsp://192.168.1.50:8554/live" style="font-size: 0.7rem; justify-content: center;">
-                🚁 RTSP Dron
+                RTSP Dron
               </button>
               <button class="btn-icon btn-preset-source" data-src="0" style="font-size: 0.7rem; justify-content: center;">
-                📷 Cámara Local
+                Cámara Local
               </button>
             </div>
           </div>

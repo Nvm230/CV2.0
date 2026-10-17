@@ -424,7 +424,7 @@ if __name__ == "__main__":
     local_ip = get_lan_ip()
     port = 8000
     print("\n" + "=" * 70)
-    print(" 🚀 ESTACIÓN TERRESTRE CV2.0 - SERVIDOR WEB LAN INICIADO")
+    print(" ESTACION TERRESTRE CV2.0 - SERVIDOR WEB LAN INICIADO")
     print(f"    Acceso Local:             http://127.0.0.1:{port}")
     print(f"    Acceso Red Local (LAN):   http://{local_ip}:{port}")
     print("    Cualquier teléfono, tablet o PC en la misma red Wi-Fi/Ethernet")
